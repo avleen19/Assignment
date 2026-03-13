@@ -1,70 +1,222 @@
-# Getting Started with Create React App
+Employee Insights Dashboard
+Overview
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+The Employee Insights Dashboard is a React-based application built to demonstrate frontend engineering concepts such as authentication, performance optimization, browser hardware interaction, and custom data visualization.
 
-## Available Scripts
+The application consists of four screens:
 
-In the project directory, you can run:
+Login Page – Secure authentication with session persistence
 
-### `npm start`
+Employee List Page – High-performance virtualized employee grid
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Details Page – Camera capture and signature verification
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Analytics Page – Salary distribution visualization using SVG
 
-### `npm test`
+The project follows the engineering constraints defined in the assignment.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Tech Stack
 
-### `npm run build`
+React
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+React Router
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Tailwind CSS
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+HTML5 Canvas API
 
-### `npm run eject`
+MediaDevices Camera API
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+SVG for visualization
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+No UI component libraries (MUI, Bootstrap, Ant Design) or virtualization libraries were used.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Features
+1. Secure Authentication
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+Login credentials:
 
-## Learn More
+Username: testuser
+Password: Test123
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Implementation:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+React Context API for global authentication state
 
-### Code Splitting
+Session persistence using localStorage
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Protected routes using a PrivateRoute component
 
-### Analyzing the Bundle Size
+Redirects unauthorized users to login
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+If a user tries to access:
 
-### Making a Progressive Web App
+/list
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+without logging in, they are redirected to:
 
-### Advanced Configuration
+/
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+2. Employee List (Custom Virtualized Grid)
 
-### Deployment
+Employee data is fetched from the API:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+POST https://backend.jotish.in/backend_dev/gettabledata.php
 
-### `npm run build` fails to minify
+Payload:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+username=test
+password=123456
+
+Since datasets can be large, the list uses custom virtualization so only visible rows are rendered in the DOM.
+
+This significantly improves performance and reduces unnecessary rendering.
+
+Virtualization Logic
+
+Key variables:
+
+rowHeight
+
+scrollTop
+
+containerHeight
+
+Calculation:
+
+startIndex = Math.floor(scrollTop / rowHeight)
+
+visibleRows = Math.ceil(containerHeight / rowHeight)
+
+endIndex = startIndex + visibleRows
+
+Rows are rendered using:
+
+employees.slice(startIndex, endIndex)
+
+Each row is positioned using:
+
+top = index * rowHeight
+
+This preserves scroll height while rendering only visible rows.
+
+3. Identity Verification (Details Page)
+
+Accessible via:
+
+/details/:id
+
+Features implemented:
+
+Camera Capture
+
+Uses the browser MediaDevices API to capture a profile photo.
+
+navigator.mediaDevices.getUserMedia()
+
+The captured frame is drawn onto a canvas and converted to Base64.
+
+Signature Canvas
+
+Users sign their name directly on an HTML5 canvas using mouse or touch events.
+
+Canvas events used:
+
+mousedown
+
+mousemove
+
+mouseup
+
+The signature is stored as a Base64 image.
+
+Image Merge
+
+The captured photo and signature are merged into a single image.
+
+Process:
+
+Create a new canvas
+
+Draw the captured photo
+
+Overlay the signature
+
+Export the result using canvas.toDataURL()
+
+The final output is displayed as the Merged Audit Image.
+
+4. Analytics Page
+
+The analytics screen visualizes salary distribution per city using raw SVG elements.
+
+SVG elements used:
+
+<rect>
+
+<text>
+
+Bar heights are calculated relative to the maximum salary value.
+
+No chart libraries (Chart.js, D3, etc.) were used.
+
+Intentional Bug
+
+As required by the assignment, one intentional performance vulnerability is included.
+
+Location:
+src/components/CameraCapture.jsx
+
+Issue:
+
+The camera stream obtained using:
+
+navigator.mediaDevices.getUserMedia()
+
+is never stopped after capturing the photo.
+
+The correct implementation should call:
+
+stream.getTracks().forEach(track => track.stop())
+
+However this cleanup is intentionally omitted.
+
+Impact:
+
+The camera continues running in the background
+
+Causes a potential memory leak
+
+This bug is intentionally included to demonstrate awareness of browser resource management.
+
+Running the Project
+
+Install dependencies:
+
+npm install
+
+Start the development server:
+
+npm start
+
+Open the application in the browser:
+
+http://localhost:3000
+
+Application Flow
+
+Login using provided credentials
+
+View the employee list
+
+Scroll through the virtualized grid
+
+Open employee details
+
+Capture photo
+
+Add signature
+
+Merge image
+
+View analytics chart
